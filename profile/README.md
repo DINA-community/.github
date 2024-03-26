@@ -27,7 +27,7 @@ Therefore, this feature will be improved and a CSAF-Handler will be the next ste
 
 ## [Interface for different information sources](https://github.com/DINA-community/ot-assetdatabase)
 
-The [Asset Database repository](https://github.com/DINA-community/ot-assetdatabase) provides tools for processing data from different sources and converting it into
+The Asset Database repository (tbr*) provides tools for processing data from different sources and converting it into
 a JSON data format. This data format can be imported into Netbox. The functions include:
 
 - Processing of Malcolm data
@@ -35,6 +35,9 @@ a JSON data format. This data format can be imported into Netbox. The functions 
 - Data enrichment using ML methods (experimental)
 - Data enrichment via heuristics (planned)
 - Processing of active queries (planned for end 2024)
+
+
+(* release date yet uncertain because of sudden and unexpected licensing issues with 3rd party libraries)
 
 ## [Passive network analysis](https://github.com/DINA-community/ot-parsers)
 
