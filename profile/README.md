@@ -31,7 +31,7 @@ The [device management repository](https://github.com/DINA-community/devicemgt) 
 - Data enrichment via heuristics (e. g. MAC-addresses - in revision)
 - Processing of active queries (postponed)
 
-## [Passive network analysis](https://github.com/DINA-community/ot-parsers)
+## [Passive network analysis](https://github.com/DINA-community/icsnpp-dev)
 
 Industrial network protocols are often used for specific applications in a sector and some of these parsers do not cover the entire range of functions of the network protocols.
 This leads to a loss of information with passive network recordings. Therefore, the aim is to support more industrial protocols and increase content coverage.
