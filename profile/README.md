@@ -48,7 +48,7 @@ Therefore, this should be carried out where it can be done safely and without in
 
 ## [Record linkage](https://github.com/DINA-community/string-atlas)
 
-In order to compare different data sets or to extract information out of a string several modules are provided in the repository [String-Atlas](https://github.com/sDINA-community/string-atlas).
+In order to compare different data sets or to extract information out of a string several modules are provided in the repository [String-Atlas](https://github.com/DINA-community/string-atlas).
 
 The modules based on
 
@@ -56,4 +56,4 @@ The modules based on
 - delete tables for prefix and suffix removal,
 - synonyms
 
-for normalization of input data. This rules and look-up tables are listed in the repository [String-Sysiphos](ttps://github.com/DINA-community/string-sysiphos)
+for normalization of input data. This rules and look-up tables are listed in the repository [String-Sysiphos](https://github.com/DINA-community/string-sysiphos). There, also some dictionaries for device roles and manufacturers are provided which are intended for NetBox. Also, the work on a data model description that is consistent with NetBox, CSAF and Malcolm is maintained.
