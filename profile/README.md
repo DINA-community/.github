@@ -23,13 +23,16 @@ Therefore, this feature will be improved and a CSAF-Handler will be the next ste
 
 ## [Interface for different information sources](https://github.com/DINA-community/devicemgt)
 
-The [device management repository](https://github.com/DINA-community/devicemgt) provides tools for processing data from different sources and converting it into a JSON data format. This data format can be imported into NetBox. The functions include:
+
+The [device management repository](https://github.com/DINA-community/devicemgt) provides tools for processing data from different sources and converting it into 
+a JSON data format. This data format can be imported into NetBox. The functions include:
 
 - Processing of Malcolm data
 - Processing of PCAPS
 - Data enrichment using ML methods (research area)
 - Data enrichment via heuristics (e. g. MAC-addresses - in revision)
 - Processing of active queries (postponed)
+
 
 ## [Passive network analysis](https://github.com/DINA-community/icsnpp-dev)
 
