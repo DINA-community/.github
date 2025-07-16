@@ -23,8 +23,7 @@ Therefore, this feature will be improved and a CSAF-Handler will be the next ste
 
 ## [Interface for different information sources](https://github.com/DINA-community/devicemgt)
 
-
-The [device management repository](https://github.com/DINA-community/devicemgt) provides tools for processing data from different sources and converting it into 
+The [device management repository](https://github.com/DINA-community/devicemgt) provides tools for processing data from different sources and converting it into
 a JSON data format. This data format can be imported into NetBox. The functions include:
 
 - Processing of Malcolm data
@@ -33,12 +32,11 @@ a JSON data format. This data format can be imported into NetBox. The functions 
 - Data enrichment via heuristics (e. g. MAC-addresses - in revision)
 - Processing of active queries (postponed)
 
-
-## [Passive network analysis](https://github.com/DINA-community/icsnpp-dev)
+## [Passive network analysis](https://github.com/DINA-community/ot-parsers)
 
 Industrial network protocols are often used for specific applications in a sector and some of these parsers do not cover the entire range of functions of the network protocols.
 This leads to a loss of information with passive network recordings. Therefore, the aim is to support more industrial protocols and increase content coverage.
-An overview of parsers can be found in the [repository ICSNPP-dev](https://github.com/DINA-community/icsnpp-dev).
+An overview of parsers can be found in the [repository ot-parsers](https://github.com/DINA-community/ot-parsers).
 
 ## [CSAF Handler](https://github.com/DINA-community/DINA-community/csaf-netbox-plugin)
 
