@@ -40,7 +40,7 @@ An overview of parsers can be found in the [repository ot-parsers](https://githu
 
 ## [CSAF Handler](https://github.com/DINA-community/DINA-community/csaf-netbox-plugin)
 
-To determine whether assets (e.g., software, device types, or individual devices) are affected by vulnerabilities, comparison with security advisories is essential. To reduce the time required, automated matching between assets and security advisories in [CSAF](www.csaf.io) is provided by the [Matching-Agent](https://github.com/DINA-community/matching-agent). In principal, it can be used on any database. For NetBox, the [CSAF-Plugin](https://github.com/DINA-community/csaf-netbox-plugin) is given handling the interaction.
+To determine whether assets (e.g., software, device types, or individual devices) are affected by vulnerabilities, comparison with security advisories is essential. To reduce the time required, automated matching between assets and security advisories in [CSAF](https://csaf.io) is provided by the [Matching-Agent](https://github.com/DINA-community/matching-agent). In principal, it can be used on any database. For NetBox, the [CSAF-Plugin](https://github.com/DINA-community/csaf-netbox-plugin) is given handling the interaction.
 
 ## [Active requests](https://github.com/DINA-community/ot-nmap-scritps)
 
