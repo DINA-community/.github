@@ -1,0 +1,20 @@
+# labels.yml
+
+labels:
+  - name: AssetSync
+    color: f9d0c4
+    description: "Concerns Asset synchronizer"
+
+  - name: CsafSync
+    color: c2e0c6
+    description: "Concerns CSAF synchronizer"
+
+  - name: Matcher
+    color: d4c5f9
+    description: ""
+  
+  - name: NetBox
+    color: d4c5f9
+    description: ""
+
+
