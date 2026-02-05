@@ -1,0 +1,38 @@
+# labels.yml
+
+labels:
+  - name: bug
+    color: d73a4a
+    description: "something is not working"
+
+  - name: documentation
+    color: 0075ca
+    description: "Improve or add description"
+
+  - name: duplicate
+    color: cfd3d7
+    description: "This issue or pull request already exists"
+
+  - name: enhancement
+    color: a2eeef
+    description: "feature or request"
+
+  - name: invalid
+    color: e4e669
+    description: "This issue is invalid for processing"
+
+  - name: maintenance
+    color: 006b75
+    description: "will be fixed by owner or alike"
+
+  - name: project
+    color: cc317c
+    description: "task for a project"
+
+  - name: usability
+    color: 0e8a16
+    description: "complicated or unexpected functionality"
+
+  - name: wontfix
+    color: ffff00
+    description: "This will not be worked on"
