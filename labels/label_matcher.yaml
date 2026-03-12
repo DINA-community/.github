@@ -2,16 +2,24 @@
   color: f9d0c4
   description: "Concerns Asset synchronizer"
 
+- name: Cachedb
+  color: bfd4f2
+  description: "Concerns cache database"
+
 - name: CsafSync
   color: c2e0c6
   description: "Concerns CSAF synchronizer"
 
-- name: Matcher
-  color: d4c5f9
-  description: ""
+- name: Matcher-Algorithm
+  color: fbca04
+  description: "Concerns the algorithm"
+
+- name: Matcher-Framework
+  color: d93f0b
+  description: "Concerns the Framework if not synchronizer related"
 
 - name: NetBox
   color: d4c5f9
-  description: ""
+  description: "Effects the GUI NetBox"
 
 
