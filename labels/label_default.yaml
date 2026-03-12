@@ -26,6 +26,10 @@
   color: "cc317c"
   description: "task for a project"
 
+- name: "question"
+  color: "d876e3"
+  description: "Question to a feature - explanation requested"
+
 - name: "usability"
   color: "0e8a16"
   description: "complicated or unexpected functionality"
