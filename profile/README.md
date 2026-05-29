@@ -14,14 +14,16 @@ In terms of content, the following focal points arise, which are stored in the r
   - [Active requests](#active-requests)
   - [Record linkage](#record-linkage)
 
-## [Source of truth](https://github.com/DINA-community/DDDC-Netbox-plugin)
+## [Source of truth](https://github.com/DINA-community/DDDC-Netbox-plugin "DDDC-Netbox-plugin")
 
 The asset management tool [NetBox](https://github.com/netbox-community/netbox) serves as a user interface for capturing assets.
 The ["Device Detection and Device Characterization" plugin](https://github.com/DINA-community/DDDC-Netbox-plugin) is provided to enable the import of asset information from other sources (currently operator lists, Malcolm and possibly in future experimental ML-procedures) into NetBox.
 This standardizes the information when assigning to the assets during the import process. The standardized information is an important step finding matches within other data bases such as [CSAF](https://github.com/oasis-tcs/csaf).
 Therefore, this feature will be improved and a CSAF-Handler will be the next step in the development.
 
-## [Interface for different information sources](https://github.com/DINA-community/devicemgt)
+## [Interface for different information sources](https://github.com/DINA-community/devicemgt "Device MGT")
+
+> Note: This repository is currently under complete reconstruction.
 
 The [device management repository](https://github.com/DINA-community/devicemgt) provides tools for processing data from different sources and converting it into
 a JSON data format. This data format can be imported into NetBox. The functions include:
@@ -32,22 +34,25 @@ a JSON data format. This data format can be imported into NetBox. The functions 
 - Data enrichment via heuristics (e. g. MAC-addresses - in revision)
 - Processing of active queries (postponed)
 
-## [Passive network analysis](https://github.com/DINA-community/ot-parsers)
+## [Passive network analysis](https://github.com/DINA-community/ot-parsers "ot-parsers")
 
-Industrial network protocols are often used for specific applications in a sector and some of these parsers do not cover the entire range of functions of the network protocols.
-This leads to a loss of information with passive network recordings. Therefore, the aim is to support more industrial protocols and increase content coverage.
-An overview of parsers can be found in the [repository ot-parsers](https://github.com/DINA-community/ot-parsers).
+An overview of developed parsers can be found in the [repository ot-parsers](https://github.com/DINA-community/ot-parsers).
+Furthermore, there are plenty of repositories with further ones:
 
-## [CSAF Handler](https://github.com/DINA-community/DINA-community/csaf-netbox-plugin)
+- [Orange-Cyberdefense](https://github.com/Orange-Cyberdefense/awesome-industrial-protocols)
+- [CISA](https://github.com/cisagov/ICSNPP)
 
-To determine whether assets (e.g., software, device types, or individual devices) are affected by vulnerabilities, comparison with security advisories is essential. To reduce the time required, automated matching between assets and security advisories in [CSAF](https://csaf.io) is provided by the [Matching-Agent](https://github.com/DINA-community/matching-agent). In principal, it can be used on any database. For NetBox, the [CSAF-Plugin](https://github.com/DINA-community/csaf-netbox-plugin) is given handling the interaction.
+## [CSAF Handler](https://github.com/DINA-community/matching-agent "Matching Agent")
 
-## [Active requests](https://github.com/DINA-community/ot-nmap-scritps)
+To determine whether assets (e.g., software, device types, or individual devices) are affected by vulnerabilities, comparison with security advisories is essential. To reduce the time required, automated matching between assets and security advisories in [CSAF](https://csaf.io) is provided by the [Matching-Agent](https://github.com/DINA-community/matching-agent).
+In principal, it can be used on any database. For NetBox, the [CSAF-Plugin](https://github.com/DINA-community/csaf-netbox-plugin) is provided handling the interaction.
+
+## [Active requests](https://github.com/DINA-community/ot-nmap-scritps "Nmap scripts")
 
 Active queries make it possible to collect significantly more and more targeted information than is the case with passive network analysis.
 Therefore, this should be carried out where it can be done safely and without interfering the controls and processes. One way of doing this is to use [Nmap scripts](https://nmap.org/nsedoc/scripts/) as presented in the [repository OT-Nmap-scripts](https://github.com/DINA-community/ot-nmap-scritps).
 
-## [Record linkage](https://github.com/DINA-community/string-atlas)
+## [Record linkage](https://github.com/DINA-community/string-atlas "String-Atlas")
 
 In order to compare different data sets or to extract information out of a string several modules are provided in the repository [String-Atlas](https://github.com/DINA-community/string-atlas).
 
