@@ -1,0 +1,56 @@
+name: Projects sweep
+
+on:
+  schedule:
+    - cron: "55 6 * * 1,4"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Look-back window in days"
+        required: false
+        default: "7"
+
+permissions: {}
+
+env:
+  ORG: DINA-community
+  GH_TOKEN: ${{ secrets.PROJECT_LABEL_SET }}
+  P1: repo-name
+  P2: D3C-Netbox-plugin CSAF-Netbox-Plugin
+  P3: String-*
+  P4: Matching-Agent
+  P5: icsnpp-*
+
+jobs:
+  sweep:
+    if: github.repository == 'DINA-community/.github'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: sweep-${{ matrix.project }}
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ["1", "2", "3", "4", "5"]
+    env:
+      DAYS:  ${{ github.event.inputs.days || '7' }}
+      GROUP: P${{ matrix.project }}
+    steps:
+      - run: |
+          globs="${!GROUP}"
+          [ -n "$globs" ] || { echo "no repo group for project ${{ matrix.project }}"; exit 0; }
+          repos=$(gh repo list "$ORG" --limit 2000 --json name -q '.[].name' \
+                    | while read -r r; do
+                        for g in $globs; do [[ $r == $g ]] && echo "$r"; done
+                      done | sort -u)
+          [ -n "$repos" ] || { echo "no repos matched: $globs"; exit 0; }
+          q=$(for r in $repos; do printf 'repo:%s ' "$r"; done)
+          since="$(date -u -d "$DAYS days ago" +%F)"
+          for kind in issue pr; do
+            gh api search/issues --paginate \
+               -f q="$q is:$kind is:open updated:>=$since" \
+               --jq '.items[].html_url' |
+            while read -r url; do
+              gh project item-add "${{ matrix.project }}" --owner "$ORG" --url "$url" || true
+            done
+          done
