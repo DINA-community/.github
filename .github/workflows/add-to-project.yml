@@ -1,0 +1,20 @@
+name: add-to-project
+
+on:
+  workflow_call:
+    inputs:
+      project: { required: true,  type: string }
+      org:     { required: false, type: string, default: DINA-community }
+    secrets:
+      PROJECT_LABEL_SET: { required: true }
+
+permissions: {}
+
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v2.0.1
+        with:
+          project-url: https://github.com/orgs/${{ inputs.org }}/projects/${{ inputs.project }}
+          github-token: ${{ secrets.PROJECT_LABEL_SET }}
