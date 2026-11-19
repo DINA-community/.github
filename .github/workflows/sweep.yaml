@@ -15,11 +15,9 @@ permissions: {}
 env:
   ORG: DINA-community
   GH_TOKEN: ${{ secrets.PROJECT_LABEL_SET }}
-  P1: repo-name
-  P2: D3C-Netbox-plugin CSAF-Netbox-Plugin
-  P3: String-*
-  P4: Matching-Agent
-  P5: icsnpp-*
+  P3: D3C-Netbox-plugin CSAF-Netbox-Plugin
+  P4: icsnpp-*
+  P5: String-*
 
 jobs:
   sweep:
@@ -31,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: ["1", "2", "3", "4", "5"]
+        project: ["3", "4", "5"]
     env:
       DAYS:  ${{ github.event.inputs.days || '7' }}
       GROUP: P${{ matrix.project }}
