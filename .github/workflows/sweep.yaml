@@ -35,20 +35,41 @@ jobs:
       GROUP: P${{ matrix.project }}
     steps:
       - run: |
+          set -euo pipefail
           globs="${!GROUP}"
-          [ -n "$globs" ] || { echo "no repo group for project ${{ matrix.project }}"; exit 0; }
-          repos=$(gh repo list "$ORG" --limit 2000 --json name -q '.[].name' \
-                    | while read -r r; do
-                        for g in $globs; do [[ $r == $g ]] && echo "$r"; done
-                      done | sort -u)
-          [ -n "$repos" ] || { echo "no repos matched: $globs"; exit 0; }
+          echo "project ${{ matrix.project }} globs: $globs"
+          [ -n "$globs" ] || { echo "::error::no repo group for project ${{ matrix.project }}"; exit 1; }
+
+          repos=$(gh repo list "$ORG" --limit 2000 --json name,isPrivate,isFork,archived -q '
+                    .[]
+                    | select(
+                        (.archived  | not) and
+                        (.isFork    | not) and
+                        (.isPrivate | not) and
+                        (.name | startswith(".") | not)
+                      )
+                    | .name' \
+                  | while read -r r; do
+                      for g in $globs; do [[ $r == $g ]] && echo "$r"; true; done
+                    done | sort -u) || true
+
+          echo "resolved:"; echo "$repos" | sed 's/^/  /'
+          [ -n "$repos" ] || { echo "::error::no repos matched $globs"; exit 1; }
+
+          for g in $globs; do
+            case $g in *[\*\?]*) ;; *)
+              grep -qx "$g" <<<"$repos" || echo "::warning::$g matched nothing (fork/private/dot/archived, or renamed)"
+            ;; esac
+          done
+
           q=$(for r in $repos; do printf 'repo:%s ' "$r"; done)
+          echo "query length: ${#q}"          # 422 if > 256
           since="$(date -u -d "$DAYS days ago" +%F)"
           for kind in issue pr; do
-            gh api search/issues --paginate \
-               -f q="$q is:$kind is:open updated:>=$since" \
-               --jq '.items[].html_url' |
+            gh api search/issues --paginate -f q="$q is:$kind is:open updated:>=$since" \
+               --jq '.items[].html_url' > items.txt
+            echo "$kind: $(wc -l < items.txt) item(s) for $since onwards"
             while read -r url; do
               gh project item-add "${{ matrix.project }}" --owner "$ORG" --url "$url" || true
-            done
+            done < items.txt
           done
