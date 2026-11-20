@@ -5,19 +5,16 @@ on:
     - cron: "55 6 * * 1,4"
   workflow_dispatch:
     inputs:
-      days:
-        description: "Look-back window in days"
-        required: false
-        default: "7"
+      days: { description: "Look-back window in days", required: false, default: "7" }
 
 permissions: {}
 
 env:
   ORG: DINA-community
   GH_TOKEN: ${{ secrets.PROJECT_LABEL_SET }}
-  P3: D3C-Netbox-plugin CSAF-Netbox-Plugin
-  P4: icsnpp-*
-  P5: String-*
+  P3: D3C-Netbox-plugin CSAF-Netbox-Plugin DeviceMgt asset-jetconf
+  P4: ot-nmap-scripts ot-parsers ICCP-Setup icsnpp-*
+  P5: Matching-Agent String-*
 
 jobs:
   sweep:
@@ -34,61 +31,35 @@ jobs:
       DAYS:  ${{ github.event.inputs.days || '7' }}
       GROUP: P${{ matrix.project }}
     steps:
-      - name: Secret reachability
-        run: |
-          echo "len=${#GH_TOKEN} prefix=${GH_TOKEN:0:4}"
-          gh api user -q .login
       - run: |
-          set -euo pipefail
+          set -euo pipefail; set -f
+
           globs="${!GROUP}"
-          echo "project ${{ matrix.project }} globs: $globs"
-          [ -n "$globs" ] || { echo "::error::no repo group for project ${{ matrix.project }}"; exit 1; }
+          [ -n "$globs" ] || { echo "::error::no repo group for ${{ matrix.project }}"; exit 1; }
 
-          # 1) inventory to a FILE, never a substitution — a gh failure can't be masked
-          gh repo list "$ORG" --limit 1000 \
-             --json name,visibility,isPrivate,isFork,isArchived > all.json \
-            || { echo "::error::gh repo list FAILED (bad token / no org access)"; exit 1; }
+          gh repo list "$ORG" --limit 1000 --json name,isPrivate,isFork,isArchived > all.json
+          [ "$(jq length all.json)" -gt 0 ] || { echo "::error::token sees 0 repos in $ORG"; exit 1; }
 
-          # 2) wrong --json field names must be fatal, not silently empty
-          jq -e '.[0] | has("isArchived") and has("isFork") and has("isPrivate")' all.json >/dev/null \
-            || { echo "::error::inventory lacks expected fields — check the --json names"; exit 1; }
+          jq -r '.[] | select((.isArchived or .isFork or .isPrivate
+                               or (.name|startswith(".")))|not) | .name' all.json \
+            | while read -r r; do rl=${r,,}; for g in $globs; do [[ $rl == ${g,,} ]] && echo "$r"; true; done; done \
+            | sort -u > repos.txt
+          [ -s repos.txt ] || { echo "::error::no repos matched $globs"; exit 1; }
 
-          n=$(jq length all.json)
-          echo "org repos visible to the token: $n"
-          [ "$n" -gt 0 ] || { echo "::error::token sees 0 repos in $ORG (org membership revoked?)"; exit 1; }
-
-          jq -r '.[] | select(.isPrivate)              | "  private (skipped):  \(.name)"' all.json | head -40
-          jq -r '.[] | select(.isFork)                 | "  fork (skipped):     \(.name)"'  all.json | head -40
-          jq -r '.[] | select(.isArchived)             | "  archived (skipped): \(.name)"'  all.json | head -40
-          jq -r '.[] | select(.name | startswith(".")) | "  dot-name (skipped): \(.name)"'  all.json | head -40
-
-          # 3) filter, then glob — case-insensitive so casing can never bite again
-          repos=$(jq -r '.[]
-                    | select((.isArchived or .isFork or .isPrivate
-                              or (.name | startswith("."))) | not)
-                    | .name' all.json \
-                  | while read -r r; do
-                      rl=${r,,}
-                      for g in $globs; do [[ $rl == ${g,,} ]] && echo "$r"; true; done
-                    done | sort -u)
-
-          echo "resolved:"; echo "$repos" | sed 's/^/  /'
-          if [ -z "$repos" ]; then
-            echo "::error::no repos matched $globs — compare against the skipped list above"
-            for g in $globs; do
-              jq -r --arg n "$g" '.[] | select(.name|ascii_downcase == ($n|ascii_downcase))
-                     | "  \(.name): private=\(.isPrivate) fork=\(.isFork) archived=\(.isArchived)"' all.json
-            done
-            exit 1
-          fi
-
-          q=$(for r in $repos; do printf 'repo:%s ' "$r"; done)
-          since="$(date -u -d "$DAYS days ago" +%F)"
+          since="$(date -u -d "$DAYS days ago" +%F)"; ok=0; dup=0; bad=0
           for kind in issue pr; do
-            gh api search/issues --paginate -f q="$q is:$kind is:open updated:>=$since" \
-               --jq '.items[].html_url' > items.txt
-            echo "$kind: $(wc -l < items.txt) item(s) for $since onwards"
+            gh api --method GET search/issues --paginate \
+               -f q="org:$ORG is:$kind is:open updated:>=$since" \
+               --jq '.items[] | [(.repository_url | split("/repos/")[1]), .html_url] | @tsv' > found.tsv
+
+            awk -F'\t' -v o="$ORG" 'NR==FNR{k[o"/"$0]=1;next} ($1 in k){print $2}' repos.txt found.tsv > items.txt
+
             while read -r url; do
-              gh project item-add "${{ matrix.project }}" --owner "$ORG" --url "$url" || true
+              if out=$(gh project item-add "${{ matrix.project }}" --owner "$ORG" --url "$url" 2>&1); then ok=$((ok+1))
+              elif grep -qi already <<<"$out"; then dup=$((dup+1))
+              else bad=$((bad+1)); echo "::warning::${out:0:160}"; fi
             done < items.txt
           done
+
+          echo "project ${{ matrix.project }}: $(wc -l < repos.txt) repo(s) since $since → added=$ok already=$dup failed=$bad"
+          [ "$bad" -eq 0 ] || { echo "::error::$bad item(s) rejected — check project Admin rights"; exit 1; }
