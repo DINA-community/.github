@@ -34,6 +34,10 @@ jobs:
       DAYS:  ${{ github.event.inputs.days || '7' }}
       GROUP: P${{ matrix.project }}
     steps:
+      - name: Secret reachability
+        run: |
+          echo "len=${#GH_TOKEN} prefix=${GH_TOKEN:0:4}"
+          gh api user -q .login
       - run: |
           set -euo pipefail
           globs="${!GROUP}"
