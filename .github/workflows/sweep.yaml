@@ -44,30 +44,45 @@ jobs:
           echo "project ${{ matrix.project }} globs: $globs"
           [ -n "$globs" ] || { echo "::error::no repo group for project ${{ matrix.project }}"; exit 1; }
 
-          repos=$(gh repo list "$ORG" --limit 2000 --json name,isPrivate,isFork,archived -q '
-                    .[]
-                    | select(
-                        (.archived  | not) and
-                        (.isFork    | not) and
-                        (.isPrivate | not) and
-                        (.name | startswith(".") | not)
-                      )
-                    | .name' \
+          # 1) inventory to a FILE, never a substitution — a gh failure can't be masked
+          gh repo list "$ORG" --limit 1000 \
+             --json name,visibility,isPrivate,isFork,isArchived > all.json \
+            || { echo "::error::gh repo list FAILED (bad token / no org access)"; exit 1; }
+
+          # 2) wrong --json field names must be fatal, not silently empty
+          jq -e '.[0] | has("isArchived") and has("isFork") and has("isPrivate")' all.json >/dev/null \
+            || { echo "::error::inventory lacks expected fields — check the --json names"; exit 1; }
+
+          n=$(jq length all.json)
+          echo "org repos visible to the token: $n"
+          [ "$n" -gt 0 ] || { echo "::error::token sees 0 repos in $ORG (org membership revoked?)"; exit 1; }
+
+          jq -r '.[] | select(.isPrivate)              | "  private (skipped):  \(.name)"' all.json | head -40
+          jq -r '.[] | select(.isFork)                 | "  fork (skipped):     \(.name)"'  all.json | head -40
+          jq -r '.[] | select(.isArchived)             | "  archived (skipped): \(.name)"'  all.json | head -40
+          jq -r '.[] | select(.name | startswith(".")) | "  dot-name (skipped): \(.name)"'  all.json | head -40
+
+          # 3) filter, then glob — case-insensitive so casing can never bite again
+          repos=$(jq -r '.[]
+                    | select((.isArchived or .isFork or .isPrivate
+                              or (.name | startswith("."))) | not)
+                    | .name' all.json \
                   | while read -r r; do
-                      for g in $globs; do [[ $r == $g ]] && echo "$r"; true; done
-                    done | sort -u) || true
+                      rl=${r,,}
+                      for g in $globs; do [[ $rl == ${g,,} ]] && echo "$r"; true; done
+                    done | sort -u)
 
           echo "resolved:"; echo "$repos" | sed 's/^/  /'
-          [ -n "$repos" ] || { echo "::error::no repos matched $globs"; exit 1; }
-
-          for g in $globs; do
-            case $g in *[\*\?]*) ;; *)
-              grep -qx "$g" <<<"$repos" || echo "::warning::$g matched nothing (fork/private/dot/archived, or renamed)"
-            ;; esac
-          done
+          if [ -z "$repos" ]; then
+            echo "::error::no repos matched $globs — compare against the skipped list above"
+            for g in $globs; do
+              jq -r --arg n "$g" '.[] | select(.name|ascii_downcase == ($n|ascii_downcase))
+                     | "  \(.name): private=\(.isPrivate) fork=\(.isFork) archived=\(.isArchived)"' all.json
+            done
+            exit 1
+          fi
 
           q=$(for r in $repos; do printf 'repo:%s ' "$r"; done)
-          echo "query length: ${#q}"          # 422 if > 256
           since="$(date -u -d "$DAYS days ago" +%F)"
           for kind in issue pr; do
             gh api search/issues --paginate -f q="$q is:$kind is:open updated:>=$since" \
