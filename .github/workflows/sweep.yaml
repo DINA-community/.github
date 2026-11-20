@@ -5,7 +5,10 @@ on:
     - cron: "55 6 * * 1,4"
   workflow_dispatch:
     inputs:
-      days: { description: "Look-back window in days", required: false, default: "7" }
+      days:
+        description: "Look-back window in days"
+        required: false
+        default: "7"
 
 permissions: {}
 
@@ -26,40 +29,48 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: ["3", "4", "5"]
+        include:
+          - { project: "3",  group: P3 }
+          - { project: "4",  group: P4 }
+          - { project: "5",  group: P5 }
     env:
       DAYS:  ${{ github.event.inputs.days || '7' }}
-      GROUP: P${{ matrix.project }}
+      GROUP: ${{ matrix.group }}
     steps:
-      - run: |
+      - name: Sweep project ${{ matrix.project }}
+        run: |
           set -euo pipefail; set -f
+          trap 'rm -f all.json repos.txt found.tsv items.txt' EXIT
 
           globs="${!GROUP}"
-          [ -n "$globs" ] || { echo "::error::no repo group for ${{ matrix.project }}"; exit 1; }
+          [ -n "$globs" ] || { echo "::error::project ${{ matrix.project }} has no repo group"; exit 1; }
 
           gh repo list "$ORG" --limit 1000 --json name,isPrivate,isFork,isArchived > all.json
-          [ "$(jq length all.json)" -gt 0 ] || { echo "::error::token sees 0 repos in $ORG"; exit 1; }
-
           jq -r '.[] | select((.isArchived or .isFork or .isPrivate
-                               or (.name|startswith(".")))|not) | .name' all.json \
-            | while read -r r; do rl=${r,,}; for g in $globs; do [[ $rl == ${g,,} ]] && echo "$r"; true; done; done \
-            | sort -u > repos.txt
+                               or (.name | startswith("."))) | not) | .name' all.json \
+            | while read -r r; do
+                rl=${r,,}
+                for g in $globs; do [[ $rl == ${g,,} ]] && echo "$r"; true; done
+              done | sort -u > repos.txt
           [ -s repos.txt ] || { echo "::error::no repos matched $globs"; exit 1; }
 
-          since="$(date -u -d "$DAYS days ago" +%F)"; ok=0; dup=0; bad=0
+          ok=0; dup=0; bad=0
+          since="$(date -u -d "$DAYS days ago" +%F)"
           for kind in issue pr; do
             gh api --method GET search/issues --paginate \
                -f q="org:$ORG is:$kind is:open updated:>=$since" \
                --jq '.items[] | [(.repository_url | split("/repos/")[1]), .html_url] | @tsv' > found.tsv
 
-            awk -F'\t' -v o="$ORG" 'NR==FNR{k[o"/"$0]=1;next} ($1 in k){print $2}' repos.txt found.tsv > items.txt
+            awk -F'\t' -v o="$ORG" \
+              'NR==FNR { keep[o"/"$0]=1; next } ($1 in keep) { print $2 }' \
+              repos.txt found.tsv > items.txt
 
             while read -r url; do
-              if out=$(gh project item-add "${{ matrix.project }}" --owner "$ORG" --url "$url" 2>&1); then ok=$((ok+1))
+              if   out=$(gh project item-add "${{ matrix.project }}" --owner "$ORG" --url "$url" 2>&1); then ok=$((ok+1))
               elif grep -qi already <<<"$out"; then dup=$((dup+1))
-              else bad=$((bad+1)); echo "::warning::${out:0:160}"; fi
+              else bad=$((bad+1)); echo "::warning::${url} → ${out:0:160}"; fi
             done < items.txt
           done
 
-          echo "project ${{ matrix.project }}: $(wc -l < repos.txt) repo(s) since $since → added=$ok already=$dup failed=$bad"
-          [ "$bad" -eq 0 ] || { echo "::error::$bad item(s) rejected — check project Admin rights"; exit 1; }
+          echo "project ${{ matrix.project }}: $(wc -l < repos.txt) repos since $since → added=$ok already=$dup failed=$bad"
+          [ "$bad" -eq 0 ] || { echo "::error::$bad item(s) rejected"; exit 1; }
